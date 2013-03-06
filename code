@@ -1,1 +1,973 @@
-how
+
+# -*- coding: utf-8 -*-
+
+import wx
+import wx.lib.agw.flatnotebook as fnb
+#import wx.lib.flatnotebook as fnb
+#from agw import flatnotebook as fnb
+import os
+import codecs
+import wx.html
+import unicodedata
+import wx.lib.inspection
+   
+kbd=[[],[],[]]
+
+
+
+        
+   
+
+   
+  
+class Fdesign(wx.Frame):
+# 
+    def __init__(self):
+        wx.Frame.__init__(self,None,-1,"Uni Word",style= wx.MINIMIZE_BOX| wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN )
+        ico = wx.Icon('image/my2.ico', wx.BITMAP_TYPE_ICO)
+        self.SetIcon(ico)
+
+
+        
+        self.sampleList = {'C1 Controls Latin1 Supplement':128,'Latin Extended A':256,'Latin Extended B':384,'IPA Extensions':528,'Spacing modifier letters':688,'Combining diacritical marks':788,'Greek and Coptic':884
+                           ,'Cyrillic':1024,'Cyrillic Supplement':1280,'Armenian':1328,'Hebrew':1459,'Arabic':1536,'Syriac':1792,'Thaana':1920,'NKo':1984,'Samaritan':2048,'Mandaic':2112,'Math':8704,
+                           'Gurmukhi':2560,'Gujarati':2688,'Bengoli':2432,'Devnagari':2304,'Telugu':3072
+                           ,'Oriya':2816,'English':0,'Tamil':2944,'Kannada':3200,'Malayalam':3328,'Sinhala':3456,'Thai':3584,'Lao':3712,'Tibetan':3840,'Burmese':4096,'Georgian':4160,'Khmer':6016
+                           ,'Mongolian':6144,'Unified Canadian Aboriginal Syllabics Extended':6320,'Limbu':6400,'Tai Le':6480,'Khmer Symbols':6624,'Buginese':6656,'Balinese':6912,'Sundanese':7040,'Batak':7104
+                           ,'Lepcha':7168,'Ol Chiki':7248,'Vedic Extensions':7376,'Phonetic Extensions':7424,'Phonetic Extensions Supplement':7552,'Combining Diacritical Marks Supplement':7616,'Latin Extended Additional':7680
+                           ,'Greek Extended':7936,'General Punctuation':8194,'Block elements':9600,'Braille patterns':10240,'Latin Extended C':11360,'Syloti Nagri':43008
+                           ,'Hangul jamo':4352,'Ethiopic and Ethiopic supplement':4608,'Ethiopic Supplement':4992,'Cherokee':5024
+                           ,'Dingbats':9985,'Miscellaneous mathematical symbols A':10176,'Supplemental arrows A':10224,'Geometric  shapes':9632,'Ceilings and floors':8960
+                           ,'CJK Radicals Supplement':11904,'Kangxi Radicals 1':12032,'Kangxi Radicals 2':12160,'Ideographic Description Characters':12272
+                           ,'Hiragana':12352,'Katakana':12448,'Bopomofo':12544,'Hangul Compatibility Jamo':12592,'Yi Syllables 1':40960,'Yi Syllables 2':41088
+                           ,'Yi Syllables 3':41216,'Yi Syllables 4':41344,'Yi Syllables 5':41472,'Yi Syllables 6':41600,'Yi Syllables 7':41728,'Yi Syllables 8':41856,'Yi Syllables 9':41984
+                           ,'Yi Syllables 10':42112
+                           ,'Hangul Syllables 1':44032,'Hangul Syllables 2':44160,'Hangul Syllables 3':44288,'Hangul Syllables 4':44416,'Hangul Syllables 5':44544,'Hangul Syllables 6':44672
+                           ,'Hangul Syllables 7':44800,'Hangul Syllables 8':44928,'Hangul Syllables 9':45056
+
+
+                           } 
+        self.textpos=0
+        
+        self.KMS1=0  #this is a flage use in toggle button to manage other lang key layout
+        self.KMS2=0
+        self.BunicodeV=8704
+        
+        self.seclectV='Math'
+        self.AllreadyopenKB=[]
+        self.CreateStatusBar()
+        p = wx.Panel(self,-1)#,name="control",style=wx.TAB_TRAVERSAL )
+        #p.SetBackgroundColour((19, 179, 179))
+        #panel=wx.Panel(self,-1)
+        self.Bsizer=wx.BoxSizer(wx.VERTICAL)
+        bhor=wx.BoxSizer(wx.HORIZONTAL)          
+        menubar=wx.MenuBar()
+        menu1=wx.Menu()
+        new=menu1.Append(-1,"New   Ctrl+N","new file create")
+        openf=menu1.Append(-1,"Open  Ctrl+O","open a file")
+        menu1.AppendSeparator()
+        save=menu1.Append(-1,"Save  Ctrl+S","Save the file")
+        saveas=menu1.Append(-1,"Save As  Ctrl+T","Save the file with name in location")
+        menu1.AppendSeparator()
+        Exit=menu1.Append(-1,"Exit  Ctrl+Q ","Exit The editor")
+        menubar.Append(menu1,"F&ile")
+        #self.control =self.onWidgetSetup(wx.TextCtrl(self, style=wx.TE_MULTILINE),                              wx.EVT_KEY_DOWN, self.mykey)
+        self.x=-1
+        self.control=range(20)
+        self.edit_nb= fnb.FlatNotebook(self, -1)
+        self.edit_nb.SetNonActiveTabTextColour((25,75,90))
+        self.edit_nb.SetActiveTabTextColour((25,125,175))
+        caption = "UName_%d"%(self.x+1)
+        self.edit_nb.AddPage(self.CreatePage(), caption)#self.edit_nb,self.edit_nb
+        self.Bsizer.Add(self.edit_nb,proportion=1, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=2)                 
+    
+
+       
+
+
+
+###############################################  MENU ####################################################################
+        menu2=wx.Menu()
+
+##        undo=menu2.Append(-1,"&Undo","Undo ")
+##        redo=menu2.Append(-1,"&Redo","past ")
+        menu2.AppendSeparator()
+        copy=menu2.Append(-1,"Copy","Copy the selected area")
+        paste=menu2.Append(-1,"Paste","past ")
+
+        
+        menu2.AppendSeparator()
+        cut=menu2.Append(-1,"Cut","past ")
+        delete=menu2.Append(-1,"Delete","past ")
+        menu2.AppendSeparator()
+        
+        selectall=menu2.Append(-1,"Select All","Select all lines")
+        menubar.Append(menu2,"&Edit")
+##        menu3=wx.Menu()
+##        menubar.Append(menu3,"View")
+        #menu4=wx.Menu()
+        #symbol=menu4.Append(-1,"Symbol","insert symbol")
+        #menubar.Append(menu4,"insert")
+        menu5=wx.Menu()
+        conten=menu5.Append(-1,"Conten","new file create")
+        
+        about=menu5.Append(-1,"About","new file create")
+        #menubar.Append(menu5,"conten")
+        menubar.Append(menu5,"Help")
+        
+
+
+        
+        self.SetMenuBar(menubar)
+        self.Bind(wx.EVT_MENU,self.newf, new)
+        self.Bind(wx.EVT_MENU,self.Onopen, openf)
+        self.Bind(wx.EVT_MENU,self.Onsaveas, saveas)
+        self.Bind(wx.EVT_MENU,self.Onsave, save)
+        self.Bind(wx.EVT_MENU,self.Exitf, Exit)
+
+##
+##        self.Bind(wx.EVT_MENU,self.Onundo, undo)
+##        self.Bind(wx.EVT_MENU,self.Onredo, redo)
+        self.Bind(wx.EVT_MENU,self.Oncopy, copy)
+        self.Bind(wx.EVT_MENU,self.OnCut, cut)
+        self.Bind(wx.EVT_MENU,self.OnPaste, paste)
+        self.Bind(wx.EVT_MENU,self.OnDelete, delete)
+        self.Bind(wx.EVT_MENU,self.OnSelectAll, selectall)
+
+        self.Bind(wx.EVT_MENU,self.onabout, about)
+        self.Bind(wx.EVT_MENU,self.onConten, conten)
+
+
+        acceltbl = wx.AcceleratorTable( [
+                (wx.ACCEL_CTRL , ord('F'), menu1),
+                (wx.ACCEL_CTRL, ord('Q'), Exit.GetId()),
+                (wx.ACCEL_CTRL, ord('S'), save.GetId()),
+                (wx.ACCEL_CTRL, ord('T'), saveas.GetId()),
+                (wx.ACCEL_CTRL, ord('O'), openf.GetId()),
+                (wx.ACCEL_CTRL, ord('N'), new.GetId())
+                
+            ])
+        self.SetAcceleratorTable(acceltbl)
+        
+
+        self.BKsizer=wx.BoxSizer(wx.VERTICAL)
+###############################################################################    new try   #############################################
+        #self.control=range(20)
+        #self.hbox=range(10)  
+               
+        self.key_nb= fnb.FlatNotebook(self, -1)
+        self.key_nb.SetNonActiveTabTextColour((25,75,90))
+        self.key_nb.SetActiveTabTextColour((25,125,175))
+        caption = "Math"
+        self.key_nb.AddPage(self.CreateKeyBoard(), caption)#
+        self.key_nb.Bind(fnb.EVT_FLATNOTEBOOK_PAGE_CLOSING  ,self.knbpageclose)
+        bhor.Add(self.key_nb,proportion=0, flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=2)                 
+
+
+
+
+
+
+        
+                ###################################### NEW TRY #########################################################################
+
+  
+        p1 = wx.Panel(self,-1)
+        spLabel=['Enter','Space','Tab','Del','BackSpace','(',')','{','}','[',']','!','@','#','$','%','^',"amp",'*','-','+','=','_']
+        StaticAreaSizer= wx.GridBagSizer(hgap=2, vgap=2)
+        r1=1
+        c1=0
+        for i in spLabel:
+            #print i,'r1=',r1,'c1=',c1
+            
+            if r1==2 and c1==0:
+                bt=wx.Button(p1,label=i,size=(80,40),pos=(c1*80,r1*40))
+                #bt.SetBackgroundColour(wx.Color(50,150,200))
+                bt.SetForegroundColour(wx.Color(0,0,0))
+                bt.Bind( wx.EVT_BUTTON,self.myf)
+                StaticAreaSizer.Add(bt,pos=(r1,c1),span=(1,2))
+                c1=c1+1
+            else:
+                bt=wx.Button(p1,label=i,size=(40,40),pos=(c1*40,r1*40))
+                #bt.SetBackgroundColour(wx.Color(50,150,200))
+                bt.SetForegroundColour(wx.Color(0,0,0))
+                bt.Bind( wx.EVT_BUTTON,self.myf)
+                StaticAreaSizer.Add(bt,pos=(r1,c1))
+
+            c1=c1+1
+            if c1==4:
+                r1=r1+1
+                c1=0
+
+
+
+        self.SetSizerAndFit(StaticAreaSizer)
+
+        ProAreaSizer= wx.GridBagSizer(hgap=2, vgap=2)
+
+        st1=wx.StaticText(p,label="Select language",pos=(5,5))
+        laglist=self.sampleList.keys()
+        laglist.sort()
+        
+        self.listBox = wx.ListBox(p, -1, (5, 40), (200, 240), laglist,wx.LB_SINGLE) 
+        self.listBox.SetSelection(laglist.index("Math"))
+        self.listBox.Bind(wx.EVT_LISTBOX,self.select_list)
+        self.keyManage1 = wx.ToggleButton(p, label='OFF',size=(140,40),pos=(230,70))
+        self.keyManage2 = wx.ToggleButton(p, label='OFF',size=(140,40),pos=(230,140))
+        Mst1=wx.StaticText(p,-1,"Manage key one",pos=(230,40))
+        Mst2=wx.StaticText(p,-1,"Manage key two",pos=(230,110))
+        Mst1.SetBackgroundColour(wx.Color(120,170,240))
+        Mst2.SetBackgroundColour(wx.Color(120,170,240))
+        st1.SetBackgroundColour(wx.Color(220,170,240))
+        font = wx.Font(14, wx.CAPTION, wx.ITALIC, wx.NORMAL)
+        Mst1.SetFont(font)
+        Mst2.SetFont(font)
+        st1.SetFont(font)
+        ProAreaSizer.Add(st1,pos=(0,0),span=(1,4))
+        ProAreaSizer.Add(self.listBox,pos=(1,0),span=(7,2))
+        ProAreaSizer.Add(Mst1,pos=(1,3),span=(1,2))
+        ProAreaSizer.Add(self.keyManage1,pos=(2,3),span=(1,2))
+        ProAreaSizer.Add(Mst2,pos=(3,3),span=(1,2))
+
+        ProAreaSizer.Add(self.keyManage2,pos=(4,3),span=(1,2))
+       
+        self.keyManage1.Bind(wx.EVT_TOGGLEBUTTON, self.KeyMVSet1)
+        self.keyManage2.Bind(wx.EVT_TOGGLEBUTTON, self.KeyMVSet2)
+        
+        self.keyManage2.Enable(False)
+        self.keyManage1.SetToolTip(wx.ToolTip("click to access grater then 52 key"))
+        self.keyManage2.SetToolTip(wx.ToolTip("click to access grater then 104 key"))
+
+            
+
+        bt1=wx.Button(p,label="BackBround Color",size=(140,40),pos=(230,200))
+        
+        bt1.SetForegroundColour(wx.Color(10,100,150))
+        bt1.Bind( wx.EVT_BUTTON,self.Backcolor)
+        fontSize=wx.StaticText(p,-1,"Font Size",pos=(230,240))
+        fontSize.SetFont(font)
+        ProAreaSizer.Add(bt1,pos=(5,3),span=(1,2))
+        
+        self.sc = wx.SpinCtrl(p, -1, "", (320, 240), (55,-1 ))
+        self.sc.SetRange(1,100)
+        self.sc.SetValue(12)
+
+##        bt2=wx.Button(p,label="Font",size=(140,40))
+##        bt2.SetBackgroundColour(wx.Color(50,150,200))
+##        bt2.SetForegroundColour(wx.Color(10,100,150))
+        self.sc.Bind( wx.EVT_SPIN_UP ,self.infontsize)
+        ProAreaSizer.Add(fontSize,pos=(6,3))
+        ProAreaSizer.Add(self.sc,pos=(6,4))
+        
+        self.SetSizerAndFit(ProAreaSizer)
+        bhor.Add(p1,proportion=0,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=1 )
+        bhor.Add(p,proportion=1,flag=wx.LEFT|wx.RIGHT|wx.EXPAND,border=1 )
+        self.Bsizer.Add(bhor)
+        
+        self.SetSizerAndFit(self.Bsizer)
+
+
+
+
+
+
+
+
+
+
+
+    def infontsize(self, e):
+        curp=self.edit_nb.GetCurrentPage()
+        fs=self.sc.GetValue()
+        font=curp.GetFont()
+        font.SetPointSize(fs)
+        curp.SetFont(font)
+        
+        
+        ##print "fs= ",fs
+
+    
+    def KeyMVSet1(self, e):
+        
+        obj = e.GetEventObject()
+        isPressed = obj.GetValue()
+        
+        if isPressed:
+            self.KMS1=52
+            self.keyManage1.SetLabel('ON')
+            if len(kbd[1]+kbd[2])> 102:
+                self.keyManage2.Enable(True)
+                
+            
+        else:
+            self.keyManage1.SetLabel('OFF')
+            self.KMS1=0
+            self.KMS2=0
+            self.keyManage2.SetLabel('OFF')
+            self.keyManage2.SetValue(False)
+            self.keyManage2.Enable(False)
+
+
+    def KeyMVSet2(self, e):
+        
+        obj = e.GetEventObject()
+        isPressed = obj.GetValue()
+        
+        if isPressed:
+            self.KMS2=52
+            self.keyManage2.SetLabel('ON')
+        else:
+            self.KMS2=0
+            self.keyManage2.SetLabel('OFF')
+            
+        
+
+        
+               
+        #nb = wx.Notebook(p)
+    def Backcolor(self, event):
+        dialog = wx.ColourDialog(None)
+        dialog.GetColourData().SetChooseFull(True)
+        bt1 = event.GetEventObject()
+        if dialog.ShowModal() == wx.ID_OK:
+            data = dialog.GetColourData()
+            curp=self.edit_nb.GetCurrentPage()
+            curp.SetInsertionPoint(self.textpos)
+            f = wx.Font(19, wx.ROMAN, wx.ITALIC, wx.BOLD, True)
+            bt1.SetBackgroundColour(data.GetColour().Get())
+            curp.SetBackgroundColour(data.GetColour().Get()) 
+            #curp.SetStyle(self.textpos,-1 ,wx.TextAttr("red",wx.NullColour, f))
+        
+        ##print 'You selected: %s\n' % str(data.GetColour().Get())
+        dialog.Destroy()
+
+
+
+    def fontpro(self, event):
+        dialog = wx.FontDialog(None, wx.FontData())
+        if dialog.ShowModal() == wx.ID_OK:
+            data = dialog.GetFontData()
+            font = data.GetChosenFont()
+            colour = data.GetColour()
+            curp=self.edit_nb.GetCurrentPage()
+            #print "color",colour
+            #curp.SetInsertionPoint(self.textpos)
+            curp.SetStyle(4, 10, wx.TextAttr("white", "black"))#
+            curp.SetStyle(self.textpos,0 , wx.TextAttr(colour))
+            #curp.SetForegroundColour(data.GetColour().Get())
+        
+
+           # print 'You selected: "%s", %d points\n' % (font.GetFaceName(), font.GetPointSize())
+        dialog.Destroy()
+        
+
+
+    def select_list(self, event):
+        self.seclectV=self.listBox.GetStringSelection()
+        #print "You selected: " + self.seclectV
+        self.BunicodeV=self.sampleList[self.seclectV]
+        self.key_nb.InsertPage( self.key_nb.GetPageCount(), self.CreateKeyBoard(),self.seclectV, True, -1)
+       # print "ucode"+ str(self.sampleList[self.seclectV])
+        #self.keyManage.
+        
+    def mykey(self, event):
+        
+        curp=self.edit_nb.GetCurrentPage()
+        keycode = event.GetKeyCode()#GetUnicodeKey()
+        controlDown = event.CmdDown()
+        altDown = event.AltDown()
+       # print "keycode",keycode
+        # "altdown", altDown
+        
+        if self.BunicodeV!=0:
+
+            spind=1  # 1 for alphabet and 2 for other
+            if altDown and controlDown and keycode==wx.WXK_HOME :
+              #  print "alt and ctrl home"
+
+                togvalu=self.keyManage1.GetValue()
+                if togvalu== True:
+                    self.keyManage1.SetValue(False)
+                    self.keyManage1.SetLabel('OFF')
+                    self.KMS1=0
+                    self.KMS2=0
+                    self.keyManage2.SetLabel('OFF')
+                    self.keyManage2.SetValue(False)
+                    self.keyManage2.Enable(False)
+                    
+                else:
+                    self.keyManage1.SetValue(True)
+                    self.KMS1=52
+                    self.keyManage1.SetLabel('ON')
+                    if len(kbd[1]+kbd[2])> 102:
+                        self.keyManage2.Enable(True)
+               
+                return keycode
+            if altDown and controlDown and keycode==wx.WXK_END :
+                #print "alt and ctrl end"
+
+                togvalu=self.keyManage2.GetValue()
+                if togvalu== True:
+                    self.keyManage2.SetValue(False)
+                    self.KMS2=0
+                    self.keyManage2.SetLabel('OFF')
+                else:
+                    self.keyManage2.SetValue(True)
+                    self.KMS2=52
+                    self.keyManage2.SetLabel('ON')
+                return keycode
+                
+                    
+                     
+            if keycode<=47 or (keycode>=58 and keycode<=64)or (keycode>=91 and keycode<=96) or (keycode>=123 and keycode<=127):
+              #  print "keycode",keycode
+                                                
+                event.Skip()
+            else:
+                tx="not use"                               
+                #print "keycode",keycode
+                if keycode>=48 and keycode<=57:
+                    key=keycode-48
+                    tx=kbd[0][key]
+                    
+                elif keycode>=65 and keycode<=90:
+                    key=keycode-65+self.KMS1+self.KMS2
+                    if key<len(kbd[1]):
+                        tx=kbd[1][key]
+                    else:
+                        key=key-len(kbd[1])
+                        if key <len(kbd[2]):
+                            tx=kbd[2][key]
+                        
+                    
+                elif keycode>=97 and keycode<=122:
+                    key=keycode-71+self.KMS1+self.KMS2
+                    if key<len(kbd[1]):
+                        tx=kbd[1][key]
+                    else:
+                        key=key-len(kbd[1])
+                        if key <len(kbd[2]):
+                            tx=kbd[2][key]
+                                   
+                if tx=="not use":
+                    wx.MessageBox("This key is not implimented\n no more key is needed for this language",'Not use key',wx.OK)
+                else:
+                    curp.WriteText(tx)
+                    
+                    
+                
+                    
+                
+                        
+                    
+                
+        else:
+            event.Skip()
+
+
+    def generateKBD(self):
+        i=0
+        while i <=127:
+                
+                lab=self.showL(i)
+                try:
+                    unicodedata.name(lab)
+                    if lab.isdigit():
+                        kbd[0].append(lab)
+                    elif lab.isalpha():
+                        kbd[1].append(lab)
+                        
+                    else:
+                        kbd[2].append(lab)
+                except ValueError:
+                    pass
+                    #print "over look"
+                i=i+1
+        #print kbd
+                
+        
+        
+
+        
+    def CreateKeyBoard(self):
+        if self.seclectV in self.AllreadyopenKB:
+            #print self.AllreadyopenKB
+            #print "page index=",self.AllreadyopenKB.index(self.seclectV)
+            self.key_nb.SetSelection(self.AllreadyopenKB.index(self.seclectV))
+            
+            
+        else:
+            
+           # print self.AllreadyopenKB
+           # print 'look it------- ',self.seclectV
+            
+            #print "length=", len(kbd)
+            for pp in kbd[0][:]:
+                kbd[0].remove(pp)
+                #print pp
+            for pp1 in kbd[1][:]:
+                kbd[1].remove(pp1)
+                #print pp1
+            for pp2 in kbd[2][:]:
+                kbd[2].remove(pp2)
+                #print pp2
+                
+            self.AllreadyopenKB.append(self.seclectV)
+            p =wx.Panel(self,-1)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            nohbox=0                                                                       #
+            hbox=range(20)                                                                                   #  Design easy keay board  
+            hbox[nohbox]=wx.BoxSizer(wx.HORIZONTAL)                                                        #
+                                                                                                    #
+            ii=0                                                                                              #
+                                                                    #
+            x=0
+            
+            #sizes = [8, 10, 12, 14]
+            self.generateKBD()
+            tt=-2
+            c=0
+            #print 'tt=',tt,'c=',c
+            fon=wx.Font(14,wx.FONTENCODING_DEFAULT ,wx.FONTSTYLE_NORMAL,wx.FONTWEIGHT_BOLD )
+            while ii <3:
+                #print "================== while ================================"
+                #print 'ro=',tt,'c=',c
+                for name in kbd[ii][:]:
+                    #print "==================for ================================"
+                
+                
+                    
+                    #print 'ro=',tt,'c=',c
+                    bw=wx.Button(p, label=name,size=(35,35),pos=(c*40,tt*40))
+                                 
+                    bw.Bind( wx.EVT_BUTTON,self.myf)
+                    #bw.SetBackgroundColour(wx.Color(30,130,230))
+                    bw.SetForegroundColour(wx.Color(0,0,0))
+                    bw.SetFont(fon)
+                    hbox[nohbox].Add(bw,0,wx.RIGHT , border=3 )
+                    
+                    c=c+1
+                    x=x+1
+                    if x%20==0:
+                        tt=tt+1
+                        c=0
+                        sizer.Add(hbox[nohbox],flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, )
+                        nohbox=nohbox+1
+                        #print nohbox
+                        hbox[nohbox]=wx.BoxSizer(wx.HORIZONTAL)
+                
+                if x%20<20:
+                    tt=tt+1
+                    c=0
+                    sizer.Add(hbox[nohbox],flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, )
+                    nohbox=nohbox+1
+                    #print nohbox
+                    hbox[nohbox]=wx.BoxSizer(wx.HORIZONTAL)
+                    x=0
+                    
+                ii=ii+1
+
+                
+                        
+            if x%20<20:
+               tt=tt+1
+               c=0
+               sizer.Add(hbox[nohbox],flag=wx.EXPAND|wx.LEFT|wx.RIGHT|wx.TOP, )  
+            #print kbd
+                
+
+        
+            self.SetAutoLayout(True)
+            self.Layout()
+            
+            self.SetSizer(sizer)
+            
+            self.Fit()
+            self.Maximize()
+            self.SetSize((800, 800)) 
+            
+           
+            
+            return p
+
+
+        
+
+        
+
+    def CreatePage(self):#,notebook):#, caption):
+        
+        '''
+        Creates a simple :class:`Panel` containing a :class:`TextCtrl`.
+
+        :param `notebook`: an instance of `FlatNotebook`;
+        :param `caption`: a simple label.
+        '''
+        self.x=self.x+1
+        control = wx.TextCtrl(self,style=wx.TE_MULTILINE)
+        font = control.GetFont()
+        font.SetPointSize(14)
+        control.SetFont(font)
+        control.SetForegroundColour(wx.Color(0,0,0))
+        control.Bind( wx.EVT_SET_FOCUS ,self.TctrlSF)
+        control.Bind( wx.EVT_CHAR  ,self.mykey)
+        
+        #self.control.Bind( wx.EVT_TEXT ,self.mykey1)
+        return control
+
+
+
+
+
+
+
+    def mykey1(self, event):
+        event.Skip()
+        #print 'pos1=',self.control.GetLastPosition()
+        
+        if self.control.GetLastPosition()>self.textpos:
+            pass
+            #self.control.Remove(self.control.GetLastPosition()-1, self.control.GetLastPosition())
+        #print self.control.GetValue()
+        event.Skip()
+
+    def myf(self, event):
+        button = event.GetEventObject()
+        tx=button.GetLabel()
+
+        if tx=='Enter':
+            tx='\n'
+        if tx=='Space':
+            tx=' '
+
+        if tx=='Tab':
+            tx='\t'
+
+        if tx=='amp':
+            tx='&'
+
+                      
+        curp=self.edit_nb.GetCurrentPage()
+        if tx=='Del':
+            curp.SetFocus()
+            curp.Remove(self.textpos,self.textpos+1)
+        elif tx=="BackSpace":
+            curp.SetFocus()
+            curp.Remove(self.textpos-1,self.textpos)
+            
+        else:
+            
+            curp.SetFocus()
+            curp.SetInsertionPoint(self.textpos)
+            curp.WriteText(tx)
+            
+        
+  
+       
+    def newf(self, event):
+        """"""
+        caption = "UName_%d"%(self.x+1)
+        self.edit_nb.InsertPage( self.x+1, self.CreatePage(),caption, True, -1)#self.edit_nb
+
+
+
+    def Onsaveas(self, event):
+        
+        wildcard = "Python source (*.py)|*.py|" \
+        "Compiled Python (*.pyc)|*.pyc|" \
+        "All files (*.*)|*.*"
+        dialog = wx.FileDialog(None, "Choose a file", os.getcwd(), "", wildcard, wx.FD_SAVE   )
+        if dialog.ShowModal() == wx.ID_OK:
+            curp=self.edit_nb.GetCurrentPage()
+            stab=self.edit_nb.GetSelection()
+            
+            lp=curp.GetLastPosition()
+            data=curp.GetString(0,lp)
+            filefulname=dialog.GetPath()
+            filename=dialog.GetFilename()
+            #print "stab",stab
+            self.edit_nb.SetPageText(stab,filefulname)
+            
+            f = codecs.open(filefulname, 'w',"utf-8")
+            f.write(data)
+            f.close()
+            
+
+        dialog.Destroy()
+
+
+    def Onsave(self, event):
+        #print "call onsave"
+        curp=self.edit_nb.GetCurrentPage()
+        stab=self.edit_nb.GetSelection()
+        
+        lp=curp.GetLastPosition()
+        data=curp.GetString(0,lp)
+        #print "stab",stab
+        filefulname=self.edit_nb.GetPageText(stab)
+        #print "filefulname",filefulname
+        f = codecs.open(filefulname, 'w',"utf-8")
+        f.write(data)
+        f.close()
+
+
+
+    
+
+
+
+       
+
+        
+
+    def showL(self,df):
+        con=df+self.BunicodeV  
+        rv=unichr(con)
+        ##print  "showl self.BunicodeV=", self.BunicodeV
+
+        ##print "rv", rv
+        return rv
+
+    def knbpageclose(self,event):
+        cap1=self.key_nb.GetPageText(self.key_nb.GetSelection())
+        self.AllreadyopenKB.remove(cap1)
+        #print cap1
+
+
+    def Onopen(self,event):
+        wildcard = "Python source (*.py)|*.py|" \
+        "Compiled Python (*.pyc)|*.pyc|" \
+        "All files (*.*)|*.*"
+        dialog = wx.FileDialog(None, "Choose a file", os.getcwd(), "", wildcard, wx.FD_OPEN )
+        if dialog.ShowModal() == wx.ID_OK:
+            filefulname=dialog.GetPath()
+            self.edit_nb.InsertPage( self.x+1, self.CreatePage(),filefulname, True, -1)
+            f = codecs.open(filefulname, 'r',"utf-8")
+            data=f.read()
+            f.close()
+            
+            curp=self.edit_nb.GetCurrentPage()
+            curp.AppendText(data)
+
+    def Exitf(self, event):
+        self.Close()
+
+
+    def Oncopy(self, event):
+        curp=self.edit_nb.GetCurrentPage()
+        curp.Copy()
+
+    def OnCut(self, event):
+        
+        curp=self.edit_nb.GetCurrentPage()
+        curp.Cut()
+
+    def Onundo(self, event):
+        curp=self.edit_nb.GetCurrentPage()
+        #curp.SetFocus()
+        curp.Undo()
+
+    def Onredo(self, event):
+        
+        curp=self.edit_nb.GetCurrentPage()
+        #curp.SetFocus()
+        curp.Redo()
+
+    
+
+    def OnPaste(self, event):
+        curp=self.edit_nb.GetCurrentPage()
+        curp.Paste()
+
+    def OnDelete(self, event):
+        
+        curp=self.edit_nb.GetCurrentPage()
+        
+        frm, to = curp.GetSelection()
+        curp.Remove(frm, to)
+
+    def OnSelectAll(self, event):
+        curp=self.edit_nb.GetCurrentPage()
+        curp.SelectAll()
+
+
+    def onabout(self, event):
+        description = """This is a Unicode Editor fully GUI base.
+Both virtual and physical key board can
+Be use. It support all language under Unicode system
+
+
+"""
+        info = wx.AboutDialogInfo()
+        #info.SetIcon(ico = wx.Icon('image/UEI.ico', wx.BITMAP_TYPE_ICO))
+        info.SetName('Uni Word')
+        info.SetVersion('1.0')
+        info.SetDescription(description)
+        info.SetCopyright('(C) 2012 - 2013 Sujit Nag')
+        info.SetWebSite("http://www.uni-edit.co.cc/")
+        info.SetLicence("Free")
+        info.AddDeveloper('Sujit Nag')
+        info.AddDocWriter('Sujit Nag')
+        info.AddArtist('Sujit Nag')
+        info.AddTranslator('Sujit Nag')
+        wx.AboutBox(info)
+        
+    def onConten(self, event):
+        fr=wx.Frame(self,-1,"HELP")
+        ico = wx.Icon('image/my2.ico', wx.BITMAP_TYPE_ICO)
+        
+        fr.SetIcon(ico)
+
+        
+        html = wx.html.HtmlWindow(fr)
+        if "gtk2" in wx.PlatformInfo:
+            html.SetStandardFonts()
+
+        html.SetPage(
+##            "Here is some <b>formatted</b> <i><u>text</u></i> "
+##            "loaded from a <font color=\"red\">string</font>."
+##            "<a href=http:www.google.com> http:www.google.com</a>"
+
+           
+        """<h4>Table of Contents</h4>
+
+        <ul>
+        <li><a href="#basic">Basic Editor Use</a></li>
+        <li><a href="#advanced">Advanced Editor Use</a></li>
+        <li><a href="#Physical">Use Physical key board </a></li>
+        <li><a href="#Virtual">Use Virtual key board</a></li>
+        <li><a href="#Slan">Edit problem</a></li>
+        <li><a href="#Iscript">Edit Indian script</a></li>
+        <li><a href="#glos">Conclusion</a></li>
+        </ul>
+
+        <p ><font color=\"#119080\">
+        <a name="basic">
+        <h6>Basic Editor Use</h6>
+        <pre>
+        Select Language from language panel. Virtual key board opens more than one.
+        Use Virtual key board to edit your text by mouse click (normally left).
+        Right –bottom of the window, there is a option to change font size and background color .
+        Menu bar with important function
+        </pre>
+
+          
+
+        
+        </a>
+        </p>
+
+        <p>
+        <a name="advanced">
+        <h6>Advanced Editor Use</h6>
+        <pre>
+        Physical key board can be use to edit data. According to last selected language data can be editing by Physical key board.
+         <font color=\"#119080\">
+        For Example:
+        First select Bengali, Hindi
+        Now if we press key, Hindi script will work
+        If select English, now Physical key board work for English script
+        </font>
+        In case Virtual key board, we can use more than one script at a time by selecting language tab
+
+
+
+        </pre>
+        </a>
+        </p>
+
+        <p>
+        <a name="Physical">
+        <h6>Use Physical key board</h6>
+        <pre>
+        Use Physical key board for the last selected language:
+        <font color=\"#119080\">
+        Press caps lock(On) for first 26 key A to Z
+        Press caps lock(off) for  26 to 52 key a to z
+        Accessing over 52 key use CTRL+Alt+Home or click Manage key 1 Right –bottom of the window
+        Accessing over 104 key use CTRL+Alt+END or click Manage key 2 Right –bottom of the window
+        Digit key use for digit
+        </font>
+        </pre>
+        
+        </a>
+        </p>
+
+        <p>
+        <a name="Virtual">
+        <h6>Use Virtual key board</h6>
+        <pre>
+        When we select any language from language panel, Virtual key board will be generated for that language. 
+        To close Virtual key board, close the tab. 
+        We can use more than one Virtual key board at a time by selecting tab.
+        Click on proper key we can edit.
+
+
+
+        </pre>
+       
+        </a>
+        </p>
+
+        <p>
+        <a name="Slan">
+        <h6>Edit problem</h6>
+        <pre>
+        To edit any specific language for more help search www.google.com see Unicode editing style
+        </pre>
+        </a>
+        </p>
+
+        <p>
+        <a name="Iscript">
+        <h6>Edit Indian script</h6>
+        <pre>
+        <font color=\"#119080\" size=\"22\">
+        &#2348+ &#2381+ &#2352= &#2348&#2381&#2352       &#2476 + &#2509+ &#2480=&#2476&#2509&#2480    
+        &#2352+ &#2381+ &#2348= &#2352&#2381&#2348       &#2480 + &#2509+ &#2476=&#2480&#2509&#2476
+        &#2348+ &#2381+ &#2348= &#2348&#2381&#2348       &#2476 + &#2509+&#2476=&#2476&#2509&#2476
+        &#2348+ &#2381+ &#2351= &#2348&#2381&#2351      &#2476 + &#2509+&#2479=&#2476&#2509&#2479
+        &#2348+ &#2367=&#2348&#2367               &#2476 +&#2495      =&#2476&#2495
+        </font>
+       </pre>
+        </a>
+        </p>
+
+        <p>
+        <a name="glos">
+        <h6>Conclusion</h6>
+        <pre>
+        More help visit web site of the product
+        Send e-mail :
+        </pre>
+        </a>
+        </p>"""
+            
+            )
+              
+        fr.Show()
+
+    def TctrlSF(self, event):
+        tctrl=event.GetEventObject()
+        self.textpos=tctrl.GetInsertionPoint()
+        #print "self.cp=",self.textpos
+        
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    
+    app = wx.PySimpleApp() 
+    frame = Fdesign()
+
+    #frame.control.Show()
+    frame.Show()
+    wx.lib.inspection.InspectionTool().Show()
+    app.MainLoop() 
+        
+        
